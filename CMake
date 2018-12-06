@@ -1,0 +1,171 @@
+Making a catkin pakage and editing its cmake file accoriding to executable requirements.
+
+[I] First of all make a catkin pakage :
+
+1) Create a folder in which catkin pakage to be made.
+	for eg, catkin_ws
+
+2) Create a folder src in this folder and change directory to src.
+
+3) Initializing a catkin pakage by:
+	catkin_create_pkg <pkg name>
+	
+	This will create a catkin pakage in catkin_ws with <pkg name>:
+
+		In that catkin pakage a pakage.xml file and CMakeLists.txt file will be made.
+
+		These two files are important everytime for building and running files in catkin workspace.
+
+4) Building our pakage by going to catkin_ws and giving command : catkin_make
+	
+	This command will create two more folders build/ and devel/
+
+	Some files will be present in these folders which will be like a history of catkin_make.
+
+	Every time we do a catkin_make some of the files in these folders get updated and these files are important while running our files.
+
+	We should delete these folders everytime before catkin_make so that no it build our pakages from starting, this way there is no chance that by-mistake our catkin_make runs. 
+
+		for eg, if in previous catkin_make OpenCVConfig.cmake file was found and then we change the path of OpenCV in CMake in which there is no such file. Since our previous catkin_make had that file it won't give error but it is wrong. We don't want to give that path of OpenCV, so its better to delete build and devel and face errors.
+
+5) When 100% compilation happens we can use rosrun to run our executable.
+
+	rosrun <pkg name> <executable name>
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[II] Making a CMake file :
+
+	When we created a catkin pakage it created CMakeLists.txt and pakage.xml file in our pakage.
+
+	When we do catkin_make, this command visits every pakage in topological order and in that pakage it visits CMakeLists.txt to build.
+
+	So, in our CMakeLists.txt file we specify all the things that are required to compile our code and run it.
+
+	Let's get started :
+
+1) cmake_minimum_required(VERSION 2.8.3)
+	
+	This is just for specifying the minimum version requirement, this will automatically come when we made our pakage.
+
+2) project(<pkg name>)
+	
+	A project is made with <pkg name>.
+
+3) Adding a compiler:
+	
+	add_compile_options(-std=c++14)
+
+4) find_pakage(catkin REQUIRED COMPONENTS) :
+
+	This is used to search all the Catkin components that will be used in our code
+
+		for eg, roscpp, rospy, std_msgs
+
+		for some OpenCV and ros linked libraries like image_transport and cv_bridge
+
+			# cv_bridge is used for converting image into Mat form
+			#image_transort is used for publising images
+
+	Ex:
+		find_package(catkin REQUIRED COMPONENTS
+			cv_bridge
+			image_transport 
+			roscpp
+			std_msgs
+			rospy
+		)
+
+5) find_pakage() :
+
+	Pakages which are not related to catkin and are required for comiling and running executable
+
+	In this we will specify pakage Macros.
+
+	Pakage Macros are representation of that pakage in our system.
+
+	For eg, when opencv is installed it is searched by Macro OpenCV
+
+		find_package(OpenCV REQUIRED)
+		find_package(CUDA REQUIRED)
+		find_package(Armadillo REQUIRED)
+
+	This way when we do catkin_make it will search these pakages in our system and returns a path of that pakage.
+
+	If that pakage is not found then we have to set a path for that pakage.
+
+
+6) include_directories():
+
+	In this we specify dirctories we need to run our code.
+
+		We can specify the include diretories of the pakage we found by-
+
+			${<pakage macro>_INCLUDE_DIRS}
+
+		for eg,
+			${catkin_INCLUDE_DIRS}
+		  	${OpenCV_INCLUDE_DIRS}
+		  	${CUDA_INCLUDE_DIRS}
+			${ARMADILLO_INCLUDE_DIRS}
+
+	For some of the include files we have to manually specify there folder path
+
+		for eg,
+			include
+
+		This will check include folder in the CMakeLists.txt directory and will add all the files in that folder to include_directories.
+
+7) add_executable() :
+
+	In this we specify the path of the file which needs to be executed and the name of the exexutable by which it should be executed.
+
+	for eg,
+		add_executable(lanes src/laneDetector.cpp)
+
+8) target_link_libraries() :
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Sample CMakeLists.txt :
+
+cmake_minimum_required(VERSION 2.8.3)
+
+# package name 
+project(lanes)
+
+# Compile as C++14, supported in ROS Kinetic and newer
+add_compile_options(-std=c++14)
+
+## Find catkin macros and libraries
+## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+## is used, also find other catkin packages
+find_package(catkin REQUIRED COMPONENTS
+	cv_bridge
+	image_transport 
+	roscpp
+	std_msgs
+	rospy
+)
+find_package(OpenCV REQUIRED)
+find_package(CUDA REQUIRED)
+find_package(Armadillo REQUIRED)
+
+#catkin_package()
+
+include_directories(
+	include
+	${catkin_INCLUDE_DIRS}
+  	${OpenCV_INCLUDE_DIRS}
+  	${CUDA_INCLUDE_DIRS}
+  	${ARMADILLO_INCLUDE_DIRS}
+)
+
+add_executable(lanes src/laneDetector.cpp)
+
+target_link_libraries(lanes 
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${ARMADILLO_LIBRARIES}
+)
