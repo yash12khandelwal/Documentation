@@ -95,7 +95,13 @@ Making a catkin pakage and editing its cmake file accoriding to executable requi
 	If that pakage is not found then we have to set a path for that pakage.
 
 
-6) include_directories():
+6) catkin_pakage() :
+	
+	This is very important, if we miss this line then the executable will get saved in build folder instead of devel folder.
+	When you will do rosrun for that executable it won't be able to find that execuatable.
+
+
+7) include_directories():
 
 	In this we specify dirctories we need to run our code.
 
@@ -116,15 +122,22 @@ Making a catkin pakage and editing its cmake file accoriding to executable requi
 
 		This will check include folder in the CMakeLists.txt directory and will add all the files in that folder to include_directories.
 
-7) add_executable() :
+8) add_executable() :
 
 	In this we specify the path of the file which needs to be executed and the name of the exexutable by which it should be executed.
 
 	for eg,
 		add_executable(lanes src/laneDetector.cpp)
 
-8) target_link_libraries() :
+9) target_link_libraries() :
 
+	This links all the library links to the executable and thus when executable is run it uses that link for that library.
+
+	target_link_libraries(lanes 
+	  ${catkin_LIBRARIES}
+	  ${OpenCV_LIBRARIES}
+	  ${ARMADILLO_LIBRARIES}
+	)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
